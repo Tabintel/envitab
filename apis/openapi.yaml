@@ -1,0 +1,85 @@
+openapi: 3.0.0
+info:
+  title: Envitab API
+  description: API documentation for the Envitab waste disposal service
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /login:
+    post:
+      summary: Authenticate user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTUwMzEwMDAsImlhdCI6MTYxNTAwODIwMH0.-R8lWyK16UxgBf_0nxmBK7LJzgr5jGQClu-AOpYtkWs"
+
+  /api/trash:
+    post:
+      summary: Create Trash Pickup Request
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                location:
+                  type: string
+              required:
+                - user_id
+                - location
+      responses:
+        '201':
+          description: Trash pickup request created successfully
+          content:
+            application/json:
+              example:
+                id: "1"
+                user_id: "1"
+                location: "123 Main St, Cityville"
+                created_at: "2023-01-01T12:00:00Z"
+
+    get:
+      summary: Get All Trash Pickup Requests
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              example:
+                - id: "1"
+                  user_id: "1"
+                  location: "123 Main St, Cityville"
+                  created_at: "2023-01-01T12:00:00Z"
