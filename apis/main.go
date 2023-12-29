@@ -87,6 +87,33 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
 }
 
+// Handler for user registration
+func registerHandler(w http.ResponseWriter, r *http.Request) {
+	var newUser User
+	err := json.NewDecoder(r.Body).Decode(&newUser)
+	if err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the username is already taken
+	for _, existingUser := range users {
+		if existingUser.Username == newUser.Username {
+			http.Error(w, "Username already exists", http.StatusConflict)
+			return
+		}
+	}
+
+	// Assign a unique ID to the new user (you might use a UUID library)
+	newUser.ID = generateUniqueID()
+
+	// Store the new user (in-memory storage for simplicity)
+	users = append(users, newUser)
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+}
+
 // Handler for creating a trash pickup request
 func createTrashRequestHandler(w http.ResponseWriter, r *http.Request) {
 	var request TrashRequest
@@ -96,7 +123,7 @@ func createTrashRequestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request.ID = fmt.Sprintf("%d", len(trashRequests)+1)
+	request.ID = generateUniqueID()
 	request.CreatedAt = time.Now()
 
 	trashRequests = append(trashRequests, request)
@@ -111,11 +138,19 @@ func getTrashRequestsHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(trashRequests)
 }
 
+func generateUniqueID() string {
+	// In a real-world scenario, you might use a UUID library or another mechanism to generate unique IDs
+	return fmt.Sprintf("%d", len(users)+1)
+}
+
 func main() {
 	r := mux.NewRouter()
 
 	// Authentication endpoint
 	r.HandleFunc("/login", loginHandler).Methods("POST")
+
+	// User registration endpoint
+	r.HandleFunc("/register", registerHandler).Methods("POST")
 
 	// Authenticated endpoints
 	authRouter := r.PathPrefix("/api").Subrouter()
